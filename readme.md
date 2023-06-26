@@ -11,6 +11,36 @@ Use o node package manager [npm](https://www.npmjs.com/) para instalar as depend
 npm install
 ```
 
+## Depedencias
+
+As instalar antes de iniciar o index.js.
+Se caso necessário renovar alguma dependência.
+
+#### Express
+```bash
+npm install express@4.18.2
+```
+
+#### Express-session
+```bash
+npm install express-session@1.17.3
+```
+
+#### Mustache-express
+```bash
+npm install mustache-express@1.3.2
+```
+
+#### Sequelize
+```bash
+npm install sequelize@6.31.1
+```
+
+#### Sqlite3
+```bash
+npm install sqlite3@5.1.6
+```
+
 ## Uso
 
 Inicilize a aplicação usando o node.js
