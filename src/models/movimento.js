@@ -12,21 +12,40 @@ const Movimento = database.define("movimento", {
   },
   tipo: {
     type: Sequelize.STRING(1),
+    validate: {
+      is: /^[DC]$/
+      // is: ["/^[DC]$/", 'i']
+    },
     allowNull: false
   },
   data_movimento: {
     type: Sequelize.DATE,
+    validate: {
+      isDate: true
+    },
     allowNull: false
   },
   valor: {
     type: Sequelize.DOUBLE,
+    validate: {
+      isFloat: true
+    },
     allowNull: false
   },
   contacorrente_origem: {
-    type: Sequelize.BIGINT
+    type: Sequelize.BIGINT,
+    validate: {
+      isNumeric: true
+    }
   },
   contacorrente_destino: {
-    type: Sequelize.BIGINT
+    type: Sequelize.BIGINT,
+    validate: {
+      isNumeric: true
+    }
+  },
+  observacao: {
+    type: Sequelize.STRING(255)
   }
 
 })

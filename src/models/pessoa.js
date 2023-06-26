@@ -15,15 +15,24 @@ const Pessoa = database.define('pessoa', {
   },
   cpf: {
     type: Sequelize.BIGINT,
+    validate: {
+      isNumeric: true
+    },
     allowNull: false,
     unique: true
   },
   data_nascimento: {
     type: Sequelize.DATEONLY,
+    validate: {
+      isDate: true
+    },
     allowNull: false
   },
   telefone: {
     type: Sequelize.BIGINT,
+    validate: {
+      isNumeric: true
+    },
     allowNull: false
   },
   endereco: {
@@ -32,6 +41,9 @@ const Pessoa = database.define('pessoa', {
   },
   cep: {
     type: Sequelize.BIGINT,
+    validate: {
+      isNumeric: true
+    },
     allowNull: false
   }
 

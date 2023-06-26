@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
-const database = require('../db');
-const Pessoa = require("./pessoa");
+const database = require('../../db');
+const Pessoa = require("../pessoa");
 
 const Usuario = database.define('usuario', {
 
@@ -12,6 +12,9 @@ const Usuario = database.define('usuario', {
   },
   email: {
     type: Sequelize.STRING(64),
+    validate: {
+      isEmail: true
+    },
     allowNull: false,
     unique: true
   },
