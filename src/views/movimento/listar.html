@@ -15,6 +15,25 @@
       // Redireciona o usuário
       window.location.replace(url);
     }
+    function selecionarDataEspecifica() {
+      
+      let id = document.getElementById('id');
+      let inicial = document.getElementById('inicial');
+      let final = document.getElementById('final');
+
+      const encodedVariavel1 = encodeURIComponent(inicial.value);
+      const encodedVariavel2 = encodeURIComponent(final.value);
+
+      console.log(id.value);
+      console.log(inicial.value);
+      console.log(final.value);
+
+      url = `http://localhost:8000/movimento/listar/${id.value}?inicial=${encodedVariavel1}&final=${encodedVariavel2}`;
+
+      console.log(url)
+
+      window.location.replace(url);
+    }
   </script>
   <script>
     setTimeout('location.reload(true);', 600000)
@@ -29,6 +48,19 @@
     <div class="row mt-3">
       <div class="col">
         <button type="button" class="btn btn-primary" onclick="redirecionar()">Voltar</button>
+        <input type="text" id="id" value="{{id}}" hidden>
+      </div>
+      <div class="col-2">
+        <input class="form-control" type="date" id="inicial" value="{{inicial}}">
+      </div>
+      <div class="col-1">
+        <h3>a</h3>
+      </div>
+      <div class="col-2">
+        <input class="form-control" type="date" id="final" value="{{final}}">
+      </div>
+      <div class="col-2">
+        <button type="button" class="btn btn-primary" onclick="selecionarDataEspecifica()">Especificar</button>
       </div>
     </div>
     <h1>Movimentos</h1>

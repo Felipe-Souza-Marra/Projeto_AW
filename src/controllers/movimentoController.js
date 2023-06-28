@@ -1,4 +1,4 @@
-const Movimento = require('../models/movimento')
+const Movimento = require('../models/movimento');
 const ContaCorrente = require('../models/contaCorrente');
 const { Op } = require('sequelize');
 
@@ -182,6 +182,19 @@ async function cadastrarMovimento(req, res) {
 async function listarMovimentos(req, res) {
 
   let achouContaCorrente = false;
+  let especificando = false;
+
+  var data1 = new Date(req.query.inicial);
+  var data2 = new Date(req.query.final);
+
+  if (data1 < data2) {
+    especificando = true;
+  }
+
+  console.log(data1);
+  console.log(data2);
+  console.log(req.query.inicial);
+  console.log(req.query.final);
 
   await ContaCorrente.findOne({
     where: {
@@ -198,49 +211,133 @@ async function listarMovimentos(req, res) {
 
     let movimentos = [];
 
-    await Movimento.findAll(
-      {
-        where: { contacorrente_id: req.params.id },
-        order: [['data_movimento', 'DESC']]
-      }
-    ).then(async (contaMovimentos) => {
-      console.log(movimentos);
-      for (let movimento of contaMovimentos) {
+    let datas = {
+      inicial: null,
+      final: null
+    };
 
-        let nome = null;
-        let valor = null;
-        let positivo = null;
-        let negativo = null;
-        if (movimento.contacorrente_destino != null) {
-          console.log('Trânferencia');
-          negativo = '- ' + Number(movimento.valor);
-          nome = await ContaCorrente.findOne({ where: { id: movimento.contacorrente_destino } }).then((contaCorrente) => { return contaCorrente.nome });
+    if (especificando) {
+
+      datas.inicial = new Date(req.query.inicial);
+      datas.final = new Date(req.query.final);
+
+      console.log(datas.final);
+
+      datas.final.setDate(datas.final.getDate() + 1);
+      datas.final.setHours(20);
+      datas.final.setMinutes(59);
+      datas.final.setSeconds(59);
+      datas.final.setMilliseconds(999);
+
+      console.log(datas.final);
+
+      await Movimento.findAll(
+        {
+          where: {
+            contacorrente_id: req.params.id,
+            [Op.or]: [
+              { data_movimento: { [Op.between]: [datas.inicial, datas.final] } },
+              { data_movimento: datas.inicial },
+              { data_movimento: datas.final }
+            ]
+          },
+          order: [['data_movimento', 'DESC']]
         }
-        if (movimento.contacorrente_origem != null) {
-          console.log('Recebimento');
-          positivo = Number(movimento.valor);
-          nome = await ContaCorrente.findOne({ where: { id: movimento.contacorrente_origem } }).then((contaCorrente) => { return contaCorrente.nome });
+      ).then(async (contaMovimentos) => {
+        console.log(movimentos);
+        for (let movimento of contaMovimentos) {
+
+          let nome = null;
+          let positivo = null;
+          let negativo = null;
+
+          if (movimento.contacorrente_destino != null) {
+            negativo = '- ' + Number(movimento.valor);
+            nome = await ContaCorrente.findOne({ where: { id: movimento.contacorrente_destino } }).then((contaCorrente) => { return contaCorrente.nome });
+          }
+          if (movimento.contacorrente_origem != null) {
+            positivo = Number(movimento.valor);
+            nome = await ContaCorrente.findOne({ where: { id: movimento.contacorrente_origem } }).then((contaCorrente) => { return contaCorrente.nome });
+          }
+
+          if (movimento.observacao != null) {
+            positivo = Number(movimento.valor);
+            nome = 'Da Árvore de Dinheiro'
+          }
+
+          movimentos.push({
+            nome: nome,
+            negativo: negativo,
+            positivo: positivo,
+            data: `${movimento.data_movimento.getDate()}/${movimento.data_movimento.getMonth() + 1}/${movimento.data_movimento.getFullYear()}`,
+            horario: `${movimento.data_movimento.getHours()}:${movimento.data_movimento.getMinutes()}:${movimento.data_movimento.getSeconds()}`
+          });
         }
+      })
 
-        if (movimento.observacao != null) {
-          console.log('Vulto');
-          positivo = Number(movimento.valor);
-          nome = 'Da Árvore de Dinheiro'
+    } else {
+
+      datas.inicial = Date.now();
+      datas.final = Date.now();
+
+      await Movimento.findAll(
+        {
+          where: { contacorrente_id: req.params.id },
+          order: [['data_movimento', 'DESC']]
         }
+      ).then(async (contaMovimentos) => {
+        console.log(movimentos);
+        for (let movimento of contaMovimentos) {
 
-        console.log();
+          let nome = null;
+          let positivo = null;
+          let negativo = null;
 
-        movimentos.push({
-          nome: nome,
-          negativo: negativo,
-          positivo: positivo,
-          data: `${movimento.data_movimento.getDate()}/${movimento.data_movimento.getMonth() + 1}/${movimento.data_movimento.getFullYear()}`,
-          horario: `${movimento.data_movimento.getHours()}:${movimento.data_movimento.getMinutes()}:${movimento.data_movimento.getSeconds()}`
-        });
-      }
-    })
+          if (movimento.contacorrente_destino != null) {
+            negativo = '- ' + Number(movimento.valor);
+            nome = await ContaCorrente.findOne({ where: { id: movimento.contacorrente_destino } }).then((contaCorrente) => { return contaCorrente.nome });
+          }
+          if (movimento.contacorrente_origem != null) {
+            positivo = Number(movimento.valor);
+            nome = await ContaCorrente.findOne({ where: { id: movimento.contacorrente_origem } }).then((contaCorrente) => { return contaCorrente.nome });
+          }
 
-    res.render('movimento/listar.html', { movimentos })
+          if (movimento.observacao != null) {
+            positivo = Number(movimento.valor);
+            nome = 'Da Árvore de Dinheiro'
+          }
+
+          console.log(movimento.data_movimento);
+
+          if (datas.inicial > movimento.data_movimento) {
+            console.log('Menor');
+            datas.inicial = movimento.data_movimento;
+          }
+          if (datas.final < movimento.data_movimento) {
+            console.log('Maior');
+            datas.final = movimento.data_movimento;
+          }
+
+          movimentos.push({
+            nome: nome,
+            negativo: negativo,
+            positivo: positivo,
+            data: `${movimento.data_movimento.getDate()}/${movimento.data_movimento.getMonth() + 1}/${movimento.data_movimento.getFullYear()}`,
+            horario: `${movimento.data_movimento.getHours()}:${movimento.data_movimento.getMinutes()}:${movimento.data_movimento.getSeconds()}`
+          });
+        }
+      })
+
+    }
+
+    console.log(datas);
+    let dataInicial = new Date(datas.inicial);
+    let dataFinal = new Date(datas.final);
+
+    let inicial = `${dataInicial.getUTCFullYear().toString()}-${(dataInicial.getUTCMonth() + 1).toString().padStart(2, "0")}-${dataInicial.getUTCDate().toString().padStart(2, "0")}`;
+    let final = `${dataFinal.getUTCFullYear().toString()}-${(dataFinal.getUTCMonth() + 1).toString().padStart(2, "0")}-${dataFinal.getUTCDate().toString().padStart(2, "0")}`;
+
+    res.render('movimento/listar.html', { movimentos, "inicial": inicial, "final": final, "id": req.params.id });
 
   } else { res.redirect('/contaCorrente/lista'); }
 
